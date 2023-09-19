@@ -6,7 +6,6 @@ const express = require('express');
 const app = express()
 const port = config.port;
 
-
 // Middleware to capture the response body
 app.use((req, res, next) => {
     const oldWrite = res.write;
@@ -44,12 +43,14 @@ const warehouseRoutes = require('./api/routes/warehouse');
 const offerRoutes = require('./api/routes/offer');
 const capacityPoolRoutes = require('./api/routes/capacityPool');
 const capacityRegistryRoutes = require('./api/routes/CapacityRegistry');
+const capacityOfferRoutes = require('./api/routes/capacityOffer');
 
 app.use('/account', accountRoutes);
 app.use('/warehouse', warehouseRoutes);
 app.use('/offer', offerRoutes);
 app.use('/capacity/pool', capacityPoolRoutes);
 app.use('/capacity/registry', capacityRegistryRoutes);
+app.use('/capacity/offer', capacityOfferRoutes);
 
 const serviceAccount = require("./services/Account");
 serviceAccount.load();
@@ -62,7 +63,6 @@ serviceCapacityRegistry.load();
 
 const serviceCapacityPool = require("./services/CapacityPool");
 serviceCapacityPool.load();
-
 
 // Start the server
 app.listen(port, () => {

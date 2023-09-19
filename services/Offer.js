@@ -13,6 +13,31 @@ exports.get = (query) => {
     return Offer.find(query);
 }
 
+exports.receive = (offer) => {
+    //Check if offer is already in database
+    let _offer = Offer.findOne({_id: offer.id});
+    if (!_offer) {
+        _offer = Offer.create({
+            _id: offer.id,
+            price: offer.price,
+            expiryDate: offer.expiryDate,
+            addressSeller: offer.addressSeller,
+            addressBuyer: offer.addressBuyer,
+            addressSupplier: offer.addressSeller,
+            type: "DIRECT"
+        });
+    } else {
+        _offer.price = offer.price;
+        _offer.expiryDate = offer.expiryDate;
+        _offer.addressSeller = offer.addressSeller;
+        _offer.addressBuyer = offer.addressBuyer;
+        _offer.addressSupplier = offer.addressSeller;
+        _offer.type = "DIRECT";
+    }
+    _offer.save();
+    return _offer;
+}
+
 exports.HttpAccept = (offer) => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -90,7 +115,9 @@ exports.Web3postToPool = (offer) => {
                 }
             );
             //Update offer state
-            offer.state = "POSTED";
+            offer.state = "FORWARDED";
+            offer.type = "POOL";
+            offer.addressSeller = serviceAccount.get().address;
             offer.save();
             resolve(offer);
         } catch (e) {
@@ -110,9 +137,8 @@ exports.Web3updateFromPool = async () => {
                 price: web3.utils.fromWei(offer.price, "ether"),
                 expiryDate: offer.expiryTimestamp,
                 addressSeller: offer.seller,
-                addressBuyer: offer.buyer,
                 //Translate state from ["0", "1", "2"]->["IDLE", "ACCEPTED", "REMOVED"]
-                state: ["IDLE", "ACCEPTED", "REMOVED"][offer.state]
+                state: ["FORWARDED", "ACCEPTED", "REJECTED"][offer.state]
             }
         })
         //Update offers in database
@@ -125,7 +151,7 @@ exports.Web3updateFromPool = async () => {
                     expiryDate: offer.expiryDate,
                     addressSeller: offer.addressSeller,
                     addressBuyer: offer.addressBuyer,
-                    state: offer.state,
+                    state: ["FORWARDED", "ACCEPTED", "REJECTED"][offer.state],
                     type: "POOL"
                 });
             } else {
@@ -133,40 +159,18 @@ exports.Web3updateFromPool = async () => {
                 _offer.expiryDate = offer.expiryDate;
                 _offer.addressSeller = offer.addressSeller;
                 _offer.addressBuyer = offer.addressBuyer;
-                _offer.state = offer.state;
+                _offer.state = ["FORWARDED", "ACCEPTED", "REJECTED"][offer.state],
                 _offer.type = "POOL";
             }
             _offer.save();
         }
-
         return offers;
     } catch (e) {
         return e;
     }
 }
 
-exports.receive = (offer) => {
-    //Check if offer is already in database
-    let _offer = Offer.findOne({_id: offer.id});
-    if (!_offer) {
-        _offer = Offer.create({
-            _id: offer.id,
-            price: offer.price,
-            expiryDate: offer.expiryDate,
-            addressSeller: offer.addressSeller,
-            addressBuyer: offer.addressBuyer,
-            type: "DIRECT"
-        });
-    } else {
-        _offer.price = offer.price;
-        _offer.expiryDate = offer.expiryDate;
-        _offer.addressSeller = offer.addressSeller;
-        _offer.addressBuyer = offer.addressBuyer;
-        _offer.type = "DIRECT";
-    }
-    _offer.save();
-    return _offer;
-}
+
 
 exports.plan = (offer) => {
     //Check if fee is set to 0

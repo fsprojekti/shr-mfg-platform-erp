@@ -9,6 +9,8 @@ const Service = Schema("Services", {
     timestamps: {type: Array, default: []},
     //Offer for this service
     idOffer: {type: String, default: ""},
+    //Service storage location
+    location: {type: String, default: ""},
 })
 
 module.exports = Service;

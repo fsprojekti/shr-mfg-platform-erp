@@ -13,7 +13,7 @@
     "duration": 300
   },
   "port": 6000,
-  "warehouseMesApi": {"url": "http://localhost:5000"},
+  "warehouseMesApi": {"url": "http://192.168.0.104:3001"},
   "warehouseCentral": {
     "url": "http://localhost:7000"
   },
